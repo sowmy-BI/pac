@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{time::Duration, collections::HashMap};
 
 use crossterm::style::Color;
 use rusty_time::Timer;
@@ -21,24 +21,29 @@ pub struct PacMan {
 impl PacMan {
     pub fn new() -> Self {
         Self {
-            x: 0,
-            y: 0,
+            x: 7,
+            y: 28,
             ch: '}',
-            cur_dir: Direction::Left,
+            cur_dir: Direction::Up,
             timer: Timer::from_millis(200),
-            breath: Timer::from_millis(100),
+            breath: Timer::from_millis(90),
         }
     }
 
-    pub fn update_position(&mut self, delta: Duration) {
+    pub fn update_position(&mut self, delta: Duration, frame: &Frame,visited_map: &mut HashMap<String, bool>) {
         self.timer.update(delta);
         if self.timer.ready {
             match self.cur_dir {
-                Direction::Down => self.move_down(),
-                Direction::Left => self.move_left(),
-                Direction::Right => self.move_right(),
-                Direction::Up => self.move_up(),
+                Direction::Down => self.move_down(&frame),
+                Direction::Left => self.move_left(&frame),
+                Direction::Right => self.move_right(&frame),
+                Direction::Up => self.move_up(&frame),
             };
+
+            if visited_map.get(&format!("{}{}", self.x, self.y)).is_none() {
+                visited_map.insert(format!("{}{}", self.x, self.y), true);
+            }
+            
             self.timer.reset();
         }
     }
@@ -81,31 +86,34 @@ impl PacMan {
     }
 
     pub fn update_direction(&mut self, direction: Direction) {
-        // todo: update the position the availability
         self.cur_dir = direction
     }
 
-    fn move_up(&mut self) {
-        if self.y > 0 {
-            self.y -= 1
+    fn move_up(&mut self, frame: &Frame) {
+        if self.x > 0 && frame[self.x - 1][self.y].ch != '#' {
+            self.x -= 1
         }
     }
 
-    fn move_down(&mut self) {
-        if self.y < NUM_COLS - 1 {
-            self.y += 1;
-        }
-    }
-
-    fn move_left(&mut self) {
-        if self.x > 0 {
-            self.x -= 1;
-        }
-    }
-
-    fn move_right(&mut self) {
-        if self.x < NUM_ROWS - 1 {
+    fn move_down(&mut self, frame: &Frame) {
+        if self.x < NUM_ROWS - 1 && frame[self.x + 1][self.y ].ch != '#' {
             self.x += 1;
+        }
+    }
+
+    fn move_left(&mut self, frame: &Frame) {
+        if self.y > 0 && frame[self.x][self.y - 1].ch != '#' {
+            self.y -= 1;
+        } else if self.y == 0 && (frame[self.x][self.y].ch == '.' || frame[self.x][self.y].ch == ' ') {
+            self.y = NUM_COLS - 1;
+        }
+    }
+
+    fn move_right(&mut self, frame: &Frame) {
+        if self.y < NUM_COLS - 1 && frame[self.x ][self.y + 1].ch != '#'{
+            self.y += 1;
+        } else if self.y == NUM_COLS - 1 && (frame[self.x][self.y].ch == '.' || frame[self.x][self.y].ch == ' ') {
+            self.y = 0;
         }
     }
 }
