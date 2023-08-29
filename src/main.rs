@@ -16,13 +16,14 @@ use pac_man::{
     direction::Direction,
     frame::{new_frame, Drawable},
     pac_man::PacMan,
-    render,
+    render, ghosts::{self, Ghosts},
 };
 
 fn main() -> Result<()> {
     let mut stdout = stdout();
     let mut level: i8 = 1;
     let mut visited_map: HashMap<String, bool>= HashMap::new();
+    let mut rng: rand::rngs::ThreadRng = rand::thread_rng();
 
     terminal::enable_raw_mode()?;
     stdout.execute(EnterAlternateScreen)?;
@@ -47,6 +48,7 @@ fn main() -> Result<()> {
 
     let mut pac_man = PacMan::new();
     let mut instant = Instant::now();
+    let mut ghosts = Ghosts::new();
 
     'gameLoop: loop {
         let delta = instant.elapsed();
@@ -68,9 +70,11 @@ fn main() -> Result<()> {
 
         pac_man.update_character(delta);
         pac_man.update_position(delta, &frame, &mut visited_map);
+        ghosts.update_position(&mut frame, delta, &mut rng);
 
         // draw
         pac_man.draw(&mut frame);
+        ghosts.draw(&mut frame);
         // render
         let _ = tx.send((frame, visited_map.len()));
     }

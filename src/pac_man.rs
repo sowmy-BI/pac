@@ -30,7 +30,7 @@ impl PacMan {
         }
     }
 
-    pub fn update_position(&mut self, delta: Duration, frame: &Frame,visited_map: &mut HashMap<String, bool>) {
+    pub fn update_position(&mut self, delta: Duration, frame: &Frame, visited_map: &mut HashMap<String, bool>) {
         self.timer.update(delta);
         if self.timer.ready {
             match self.cur_dir {
@@ -96,7 +96,7 @@ impl PacMan {
     }
 
     fn move_down(&mut self, frame: &Frame) {
-        if self.x < NUM_ROWS - 1 && frame[self.x + 1][self.y ].ch != '#' {
+        if self.x < NUM_ROWS - 1 && frame[self.x + 1][self.y ].ch != '#' && frame[self.x + 1][self.y ].ch != '-'  {
             self.x += 1;
         }
     }
